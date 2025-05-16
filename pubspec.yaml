@@ -1,0 +1,64 @@
+name: timetable_screen
+description: "A new Flutter project."
+
+publish_to: 'none' 
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  
+  cupertino_icons: ^1.0.8
+  audioplayers: ^6.4.0
+  google_fonts: ^6.2.1
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  
+  flutter_lints: ^5.0.0
+
+
+flutter:
+
+  
+  uses-material-design: true
+
+  
+  assets:
+    - assets/audio/first_lesson.mp3
+    - assets/audio/second_lesson.mp3
+    - assets/audio/third_lesson.mp3
+    - assets/audio/fourth_lesson.mp3
+    - assets/audio/fifth_lesson.mp3
+    - assets/audio/sixth_lesson.mp3
+    - assets/audio/exit_lesson.mp3
+    - assets/audio/exit_last_lesson.mp3
+    - assets/images/
+
+ 
+
+ 
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
