@@ -132,7 +132,6 @@ class _TimetableScreenState extends State<TimetableScreen> {
   @override
   void initState() {
     super.initState();
-    // Контроллерлерди баштапкы баалуулуктар менен толтуруу
     for (var item in schedule) {
       item["startController"]?.text = item["start"] as String;
       item["endController"]?.text = item["end"] as String;
@@ -160,29 +159,33 @@ class _TimetableScreenState extends State<TimetableScreen> {
 
   void _checkSchedule() {
     final currentTimeInMinutes = _currentTime.hour * 60 + _currentTime.minute;
-    for (var schedule in schedule) {
-      if (schedule["startController"]?.text.isEmpty ?? true ?? true) continue;
-      final startTime = _parseTime(schedule["startController"]!.text);
-      final endTime = _parseTime(schedule["endController"]!.text);
-      final startTimeInMinutes = startTime.hour * 60 + startTime.minute;
-      final endTimeInMinutes = endTime.hour * 60 + endTime.minute;
-      if (currentTimeInMinutes >= startTimeInMinutes &&
-          currentTimeInMinutes <= startTimeInMinutes + 1) {
-        final key =
-            "${schedule["class"]}-start-${schedule["startController"]!.text}";
-        if (!_playedTimes.contains(key)) {
-          _playSound(schedule["enterSound"]!);
-          _playedTimes.add(key);
+    for (var scheduleItem in schedule) {
+      if (scheduleItem["startController"]?.text.isEmpty ?? true) continue;
+      try {
+        final startTime = _parseTime(scheduleItem["startController"]!.text);
+        final endTime = _parseTime(scheduleItem["endController"]!.text);
+        final startTimeInMinutes = startTime.hour * 60 + startTime.minute;
+        final endTimeInMinutes = endTime.hour * 60 + endTime.minute;
+        if (currentTimeInMinutes >= startTimeInMinutes &&
+            currentTimeInMinutes <= startTimeInMinutes + 1) {
+          final key =
+              "${scheduleItem["class"]}-start-${scheduleItem["startController"]!.text}";
+          if (!_playedTimes.contains(key)) {
+            _playSound(scheduleItem["enterSound"]!);
+            _playedTimes.add(key);
+          }
         }
-      }
-      if (currentTimeInMinutes >= endTimeInMinutes &&
-          currentTimeInMinutes <= endTimeInMinutes + 1) {
-        final key =
-            "${schedule["class"]}-end-${schedule["endController"]!.text}";
-        if (!_playedTimes.contains(key)) {
-          _playSound(schedule["exitSound"]!);
-          _playedTimes.add(key);
+        if (currentTimeInMinutes >= endTimeInMinutes &&
+            currentTimeInMinutes <= endTimeInMinutes + 1) {
+          final key =
+              "${scheduleItem["class"]}-end-${scheduleItem["endController"]!.text}";
+          if (!_playedTimes.contains(key)) {
+            _playSound(scheduleItem["exitSound"]!);
+            _playedTimes.add(key);
+          }
         }
+      } catch (e) {
+        continue;
       }
     }
   }
@@ -251,6 +254,123 @@ class _TimetableScreenState extends State<TimetableScreen> {
     );
   }
 
+  Future<void> _showTimeEditDialog(
+    BuildContext context,
+    TextEditingController controller,
+    String label,
+    String initialValue,
+    Function(String, BuildContext) onConfirm,
+  ) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        TextEditingController dialogController = TextEditingController(
+          text: initialValue,
+        );
+        return StatefulBuilder(
+          builder: (BuildContext innerContext, StateSetter setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                '$label убакытын өзгөртүү',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              content: SizedBox(
+                width: 265,
+                height: 80,
+                child: TextField(
+                  controller: dialogController,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    border: OutlineInputBorder(),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text(
+                    'Жокко чыгаруу',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    onConfirm(dialogController.text, context);
+                    Navigator.of(dialogContext).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: Text('Ырастоо', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showConfirmationDialog(
+    BuildContext context,
+    String newTime,
+    String label,
+  ) async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: SizedBox(
+            width: 265,
+            height: 150,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 50),
+                SizedBox(height: 10),
+                Text(
+                  'Убакыт ийгиликтүү өзгөртүлдү!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '$label: $newTime',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (mounted && dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: Text('Жабуу', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildTableTextField(
     TextEditingController controller, {
     String? label,
@@ -261,14 +381,38 @@ class _TimetableScreenState extends State<TimetableScreen> {
           padding: EdgeInsets.all(12.0),
           child: SizedBox(
             width: 80,
-            child: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                labelText: label,
-                border: OutlineInputBorder(),
+            child: GestureDetector(
+              onTap: () {
+                _showTimeEditDialog(
+                  context,
+                  controller,
+                  label!,
+                  controller.text,
+                  (newTime, BuildContext dialogContext) {
+                    if (mounted) {
+                      setState(() {
+                        controller.text = newTime;
+                        _checkSchedule();
+                      });
+                      Future.microtask(() {
+                        if (mounted) {
+                          _showConfirmationDialog(context, newTime, label);
+                        }
+                      });
+                    }
+                  },
+                );
+              },
+              child: AbsorbPointer(
+                child: TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    border: OutlineInputBorder(),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
-              onChanged: (value) => setState(() => _checkSchedule()),
             ),
           ),
         ),
